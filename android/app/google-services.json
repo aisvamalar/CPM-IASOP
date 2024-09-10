@@ -1,0 +1,30 @@
+{
+  "project_info": {
+    "project_number": "27397708355",
+    "firebase_url": "https://cpm-iasop-default-rtdb.asia-southeast1.firebasedatabase.app",
+    "project_id": "cpm-iasop",
+    "storage_bucket": "cpm-iasop.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:27397708355:android:c1d0d5deb48da511ed12f6",
+        "android_client_info": {
+          "package_name": "com.example.iasop"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyA08Qy9KXUo5_MvxUEq1CvkVJDMT8l2rIE"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
