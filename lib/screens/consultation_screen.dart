@@ -3,7 +3,17 @@ import 'package:iasop/screens/slot_screen.dart';
 
 import 'd_home_screen.dart';
 
-class ConsultationScreen extends StatelessWidget {
+class ConsultationScreen extends StatefulWidget {
+  @override
+  _ConsultationScreenState createState() => _ConsultationScreenState();
+}
+
+class _ConsultationScreenState extends State<ConsultationScreen> {
+  // Track selected methods
+  bool _isDirectSelected = false;
+  bool _isOnlineSelected = false;
+  bool _isChatSelected = false;
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -48,114 +58,72 @@ class ConsultationScreen extends StatelessWidget {
                 ),
                 SizedBox(height: 20),
 
-                // Direct Consultation Button and Image
-                Row(
-                  children: [
-                    Expanded(
-                      flex: 2,
-                      child: ElevatedButton(
-                        onPressed: () {
-                          // Add action for direct consultation
-                        },
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: Colors.teal,
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(20),
-                          ),
-                        ),
-                        child: Text('Direct',style: TextStyle(color: Colors.white),),
-                      ),
-                    ),
-                    Expanded(
-                      flex: 3,
-                      child: Image.asset(
-                        'images/img_33.png', // Replace with your image asset
-                        height: 120,
-                        fit: BoxFit.contain,
-                      ),
-                    ),
-                  ],
-                ),
-                SizedBox(height: 20),
-
-                // Online Consultation Button and Image
-                Row(
-                  children: [
-                    Expanded(
-                      flex: 2,
-                      child: ElevatedButton(
-                        onPressed: () {
-                          // Add action for online consultation
-                        },
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: Colors.teal,
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(20),
-                          ),
-                        ),
-                        child: Text('Online',style: TextStyle(color: Colors.white),),
-                      ),
-                    ),
-                    Expanded(
-                      flex: 3,
-                      child: Image.asset(
-                        'images/img_34.png', // Replace with your image asset
-                        height: 100,
-                        fit: BoxFit.contain,
-                      ),
-                    ),
-                  ],
-                ),
-                SizedBox(height: 20),
-
-                // Chat Consultation Button and Image
-                Row(
-                  children: [
-                    Expanded(
-                      flex: 2,
-                      child: ElevatedButton(
-                        onPressed: () {
-                          // Add action for chat consultation
-                        },
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: Colors.teal,
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(20),
-                          ),
-                        ),
-                        child: Text('Chat',style: TextStyle(color: Colors.white),),
-                      ),
-                    ),
-                    Expanded(
-                      flex: 3,
-                      child: Image.asset(
-                        'images/img_35.png', // Replace with your image asset
-                        height: 130,
-                        fit: BoxFit.contain,
-                      ),
-                    ),
-                  ],
-                ),
-                SizedBox(height: 20),
-
-                TextButton(
-                  onPressed: () {
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(builder: (context) => DHomeScreen()),
-                    );
+                // Checkbox options for selecting multiple methods
+                CheckboxListTile(
+                  title: Text('Direct'),
+                  value: _isDirectSelected,
+                  onChanged: (bool? value) {
+                    setState(() {
+                      _isDirectSelected = value ?? false;
+                    });
                   },
-                  child: Text(
-                    'Skip',
-                    style: TextStyle(color: Colors.grey),
+                  secondary: Image.asset(
+                    'images/img_33.png', // Replace with your image asset
+                    height: 60,
+                    fit: BoxFit.contain,
                   ),
-                ),// Continue Button
+                ),
+                CheckboxListTile(
+                  title: Text('Online'),
+                  value: _isOnlineSelected,
+                  onChanged: (bool? value) {
+                    setState(() {
+                      _isOnlineSelected = value ?? false;
+                    });
+                  },
+                  secondary: Image.asset(
+                    'images/img_34.png', // Replace with your image asset
+                    height: 60,
+                    fit: BoxFit.contain,
+                  ),
+                ),
+                CheckboxListTile(
+                  title: Text('Chat'),
+                  value: _isChatSelected,
+                  onChanged: (bool? value) {
+                    setState(() {
+                      _isChatSelected = value ?? false;
+                    });
+                  },
+                  secondary: Image.asset(
+                    'images/img_35.png', // Replace with your image asset
+                    height: 60,
+                    fit: BoxFit.contain,
+                  ),
+                ),
+                SizedBox(height: 20),
+
+                // Continue Button to go to SlotScreen with selected methods
                 ElevatedButton(
                   onPressed: () {
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(builder: (context) => SlotScreen()),
-                    );// Add your onPressed code here!
+                    List<String> selectedMethods = [];
+                    if (_isDirectSelected) selectedMethods.add('Direct appointment');
+                    if (_isOnlineSelected) selectedMethods.add('Online appointment');
+                    if (_isChatSelected) selectedMethods.add('Chat appointment');
+
+                    if (selectedMethods.isNotEmpty) {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => SlotScreen(selectedMethods: selectedMethods, selectedMethod: '',),
+                        ),
+                      );
+                    } else {
+                      // Show a message to select at least one method
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        SnackBar(content: Text('Please select at least one consultation method.')),
+                      );
+                    }
                   },
                   style: ElevatedButton.styleFrom(
                     backgroundColor: Colors.teal,

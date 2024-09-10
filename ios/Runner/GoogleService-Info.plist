@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<key>API_KEY</key>
+	<string>AIzaSyDKTH63WKEhZyR-wizY0dyhAdXYOBFTYPU</string>
+	<key>GCM_SENDER_ID</key>
+	<string>27397708355</string>
+	<key>PLIST_VERSION</key>
+	<string>1</string>
+	<key>BUNDLE_ID</key>
+	<string>com.example.iasop</string>
+	<key>PROJECT_ID</key>
+	<string>cpm-iasop</string>
+	<key>STORAGE_BUCKET</key>
+	<string>cpm-iasop.appspot.com</string>
+	<key>IS_ADS_ENABLED</key>
+	<false></false>
+	<key>IS_ANALYTICS_ENABLED</key>
+	<false></false>
+	<key>IS_APPINVITE_ENABLED</key>
+	<true></true>
+	<key>IS_GCM_ENABLED</key>
+	<true></true>
+	<key>IS_SIGNIN_ENABLED</key>
+	<true></true>
+	<key>GOOGLE_APP_ID</key>
+	<string>1:27397708355:ios:c16ecac76a178be6ed12f6</string>
+	<key>DATABASE_URL</key>
+	<string>https://cpm-iasop-default-rtdb.asia-southeast1.firebasedatabase.app</string>
+</dict>
+</plist>

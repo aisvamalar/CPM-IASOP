@@ -1,8 +1,14 @@
 import 'package:flutter/material.dart';
 import 'package:audioplayers/audioplayers.dart';
-import 'package:iasop/screens/patient_home_screen.dart';
+import 'package:firebase_core/firebase_core.dart';
+import 'package:firebase_storage/firebase_storage.dart';
+import 'package:path_provider/path_provider.dart';
+import 'package:permission_handler/permission_handler.dart';
+import 'dart:io';
 
-void main() {
+void main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+  await Firebase.initializeApp();
   runApp(MusicScreen());
 }
 
@@ -28,22 +34,25 @@ class _MusicPlayerPageState extends State<MusicPlayerPage> {
 
   final List<Map<String, String>> songs = [
     {
-      'title': 'Infinite Horizon',
-      'artist': 'Chris Charlie',
-      'url': 'assets/music/infinite-stars-231067.mp3',
+      'title': 'Perfect Beauty',
+      'artist': 'Unknown Artist',
+      'url': '', // Leave this empty for Firebase download
       'image': 'images/img_37.png',
+      'firebasePath': 'music/perfect-beauty-191271.mp3', // Firebase file path
     },
     {
       'title': 'Overthinking',
       'artist': 'Meadows',
       'url': 'https://www.sample-videos.com/audio/mp3/wave.mp3',
       'image': 'images/img_38.png',
+      'firebasePath': 'music/overthinking.mp3',
     },
     {
       'title': 'Nightfall',
       'artist': 'Dreamer',
       'url': 'https://www.sample-videos.com/audio/mp3/crash.mp3',
       'image': 'images/img_39.png',
+      'firebasePath': 'music/nightfall.mp3',
     },
   ];
 
@@ -53,6 +62,7 @@ class _MusicPlayerPageState extends State<MusicPlayerPage> {
     super.dispose();
   }
 
+  // Function to play music
   void _playMusic(String url) async {
     if (isPlaying && currentSong == url) {
       await _audioPlayer.pause();
@@ -61,9 +71,9 @@ class _MusicPlayerPageState extends State<MusicPlayerPage> {
       });
     } else {
       if (url.startsWith('assets')) {
-        await _audioPlayer.play(AssetSource(url)); // Corrected for local asset
+        await _audioPlayer.play(AssetSource(url));
       } else {
-        await _audioPlayer.play(UrlSource(url)); // Corrected for network URL
+        await _audioPlayer.play(UrlSource(url));
       }
 
       setState(() {
@@ -73,61 +83,60 @@ class _MusicPlayerPageState extends State<MusicPlayerPage> {
     }
   }
 
+  // Function to download the file from Firebase Storage
+  Future<void> _downloadMusic(String firebasePath, String songTitle, int index) async {
+    try {
+      // Request storage permission
+      if (await Permission.storage.request().isGranted) {
+        // Get directory to save the music file
+        final dir = await getExternalStorageDirectory();
+        final filePath = '${dir?.path}/$songTitle.mp3';
+
+        // Reference the file from Firebase Storage
+        final ref = FirebaseStorage.instance.ref().child(firebasePath);
+        final downloadUrl = await ref.getDownloadURL();
+
+        // Create a file to save the downloaded data
+        final file = File(filePath);
+
+        // Download the file using HttpClient
+        final response = await HttpClient().getUrl(Uri.parse(downloadUrl));
+        final responseData = await response.close();
+        final bytes = await consolidateHttpClientResponseBytes(responseData);
+
+        // Write the bytes to the file
+        await file.writeAsBytes(bytes);
+
+        // Update the local path for the song in the list after download
+        setState(() {
+          songs[index]['url'] = file.path;
+        });
+
+        // Show success message
+        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Downloaded $songTitle')));
+      } else {
+        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Permission denied')));
+      }
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Error downloading: $e')));
+    }
+  }
+
+  // Helper function to convert the response to bytes
+  Future<List<int>> consolidateHttpClientResponseBytes(HttpClientResponse response) async {
+    final bytes = <int>[];
+    await for (var chunk in response) {
+      bytes.addAll(chunk);
+    }
+    return bytes;
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: Colors.white,
       body: Column(
         children: [
-          Stack(
-            children: [
-              Container(
-                height: 400,
-                decoration: BoxDecoration(
-                  image: DecorationImage(
-                    image: AssetImage('images/img_36.png'),
-                    fit: BoxFit.cover,
-                  ),
-                ),
-                child: Container(
-                  color: Colors.black.withOpacity(0.3),
-                  padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 50),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      GestureDetector(
-                        onTap: () {
-                          Navigator.push(
-                            context,
-                            MaterialPageRoute(builder: (context) => PatientHomeScreen()),
-                          );
-                        },
-                        child: Icon(Icons.arrow_back, color: Colors.white),
-                      ),
-                      Spacer(),
-                      Text(
-                        'CALM',
-                        style: TextStyle(
-                          color: Colors.white,
-                          fontSize: 28,
-                          fontWeight: FontWeight.bold,
-                        ),
-                      ),
-                      SizedBox(height: 10),
-                      Text(
-                        'Gentle way to help individuals manage anxiety, improve sleep, and support mental and physical health',
-                        style: TextStyle(
-                          color: Colors.white,
-                          fontSize: 14,
-                        ),
-                      ),
-                      SizedBox(height: 20),
-                    ],
-                  ),
-                ),
-              ),
-            ],
-          ),
           Expanded(
             child: ListView.builder(
               itemCount: songs.length,
@@ -156,10 +165,11 @@ class _MusicPlayerPageState extends State<MusicPlayerPage> {
                           _playMusic(song['url']!);
                         },
                       ),
+                      // Download button
                       IconButton(
-                        icon: Icon(Icons.add, color: Colors.teal),
+                        icon: Icon(Icons.download, color: Colors.teal),
                         onPressed: () {
-                          // Add to playlist functionality
+                          _downloadMusic(song['firebasePath']!, song['title']!, index);
                         },
                       ),
                       IconButton(

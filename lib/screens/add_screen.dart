@@ -1,6 +1,8 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_storage/firebase_storage.dart';
 import 'package:flutter/material.dart';
-import 'package:image_picker/image_picker.dart';
 import 'dart:io';
+import 'package:image_picker/image_picker.dart';
 
 class AddScreen extends StatefulWidget {
   @override
@@ -11,6 +13,8 @@ class _AddScreenState extends State<AddScreen> with SingleTickerProviderStateMix
   late AnimationController _controller;
   late Animation<Offset> _offsetAnimation;
   final _formKey = GlobalKey<FormState>();
+  final TextEditingController _titleController = TextEditingController();
+  final TextEditingController _descriptionController = TextEditingController();
   XFile? _image;
   final ImagePicker _picker = ImagePicker();
   String _selectedCategory = 'General';
@@ -37,6 +41,8 @@ class _AddScreenState extends State<AddScreen> with SingleTickerProviderStateMix
   @override
   void dispose() {
     _controller.dispose();
+    _titleController.dispose();
+    _descriptionController.dispose();
     super.dispose();
   }
 
@@ -66,11 +72,36 @@ class _AddScreenState extends State<AddScreen> with SingleTickerProviderStateMix
       setState(() {
         _isLoading = true;
       });
-      // Simulate a network call
-      await Future.delayed(Duration(seconds: 2));
+
+      String imageUrl = '';
+
+      // Upload the image to Firebase Storage if an image is selected
+      if (_image != null) {
+        final storageRef = FirebaseStorage.instance
+            .ref()
+            .child('post_images')
+            .child('${DateTime.now().toIso8601String()}.jpg');
+
+        await storageRef.putFile(File(_image!.path));
+        imageUrl = await storageRef.getDownloadURL();
+      }
+
+      // Store the post in Firestore
+      await FirebaseFirestore.instance.collection('posts').add({
+        'title': _titleController.text.trim(),
+        'description': _descriptionController.text.trim(),
+        'category': _selectedCategory,
+        'date': _selectedDate?.toIso8601String() ?? DateTime.now().toIso8601String(),
+        'imageUrl': imageUrl,
+        'timestamp': Timestamp.now(),
+        'user': 'Dr. Smith', // Replace with actual user data
+        'specialization': 'Cardiologist', // Replace with actual user data
+      });
+
       setState(() {
         _isLoading = false;
       });
+
       showDialog(
         context: context,
         builder: (context) => AlertDialog(
@@ -95,7 +126,7 @@ class _AddScreenState extends State<AddScreen> with SingleTickerProviderStateMix
     return Scaffold(
       appBar: AppBar(
         backgroundColor: Colors.teal,
-        title: Text('Add New Content',style: TextStyle(color:Colors.white,),),
+        title: Text('Add New Content', style: TextStyle(color: Colors.white)),
       ),
       body: SlideTransition(
         position: _offsetAnimation,
@@ -134,6 +165,7 @@ class _AddScreenState extends State<AddScreen> with SingleTickerProviderStateMix
                   child: Column(
                     children: [
                       TextFormField(
+                        controller: _titleController,
                         decoration: InputDecoration(
                           labelText: 'Title',
                           border: OutlineInputBorder(),
@@ -148,6 +180,7 @@ class _AddScreenState extends State<AddScreen> with SingleTickerProviderStateMix
                       ),
                       SizedBox(height: 20),
                       TextFormField(
+                        controller: _descriptionController,
                         decoration: InputDecoration(
                           labelText: 'Description',
                           border: OutlineInputBorder(),
@@ -207,7 +240,7 @@ class _AddScreenState extends State<AddScreen> with SingleTickerProviderStateMix
                         onPressed: _submitForm,
                         child: _isLoading
                             ? CircularProgressIndicator(color: Colors.white)
-                            : Text('Submit',style: TextStyle(color:Colors.white,),),
+                            : Text('Submit', style: TextStyle(color: Colors.white)),
                         style: ElevatedButton.styleFrom(
                           backgroundColor: Colors.teal,
                           padding: EdgeInsets.symmetric(horizontal: 55),
