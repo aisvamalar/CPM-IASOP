@@ -221,7 +221,7 @@ class PaymentOptionCard extends StatelessWidget {
             ),
             subtitle: Text(
               subtitle,
-              style: TextStyle(
+              style:   TextStyle(
                 color: Colors.white70,
               ),
             ),
